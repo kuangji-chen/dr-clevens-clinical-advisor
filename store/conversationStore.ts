@@ -67,15 +67,13 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         streamingMessage: '',
       }));
 
-      // Extract procedure type if in classify state
-      if (state.currentState === 'classify') {
-        const procedureType = extractProcedureType(userMessage);
-        if (procedureType) {
-          set((prevState) => ({
-            ...prevState,
-            procedureType: procedureType
-          }));
-        }
+      // Extract procedure type from any message for context
+      const procedureType = extractProcedureType(userMessage);
+      if (procedureType && !state.procedureType) {
+        set((prevState) => ({
+          ...prevState,
+          procedureType: procedureType
+        }));
       }
       
       // Extract lead info if in capture state
@@ -89,16 +87,14 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         }
       }
 
-      // Determine next state based on current state and user input
+      // Log current state for debugging
       const currentState = state.currentState;
-      console.log('🔄 State transition:', { currentState, userMessage });
-      let newState = determineNextState(currentState, userMessage, state);
-      console.log('➡️ New state:', newState);
+      console.log('🔄 Current state:', { currentState, userMessage });
 
       // Send to Claude API
       ClaudeService.sendMessage(
         [...state.messages, userMsg],
-        newState,
+        currentState,
         // On chunk received (streaming)
         (chunk) => {
           if (chunk.type === 'text_delta' && chunk.text) {
@@ -118,16 +114,20 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
             citations: response.citations.length > 0 ? response.citations : undefined
           };
 
+          // Use Claude's state transition if provided, otherwise keep current state
+          const nextState = response.nextState || currentState;
+          console.log('➡️ Claude determined next state:', nextState);
+
           set((prevState) => ({
             ...prevState,
             messages: [...prevState.messages, botMessage],
             isTyping: false,
             isStreaming: false,
             streamingMessage: '',
-            currentState: newState,
+            currentState: nextState as ConversationState,
             quickPicks: (() => {
-              const picks = generateQuickPicks(newState, response.text, state.procedureType);
-              console.log('🎯 Generated quick picks:', picks);
+              const picks = generateQuickPicks(nextState as ConversationState, response.text, prevState.procedureType);
+              console.log('🎯 Generated quick picks for state', nextState, ':', picks);
               return picks;
             })(),
           }));
@@ -224,152 +224,152 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     },
 }));
 
-// State transition logic
+// DEPRECATED: State transitions are now handled by Claude AI
+// This function is kept for backwards compatibility but is no longer used
+// Claude determines the next state based on conversation context and returns it in the response
 function determineNextState(
   currentState: ConversationState, 
   userMessage: string, 
   state: { leadInfo?: any }
 ): ConversationState {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  switch (currentState) {
-    case 'welcome':
-      return 'classify';
-      
-    case 'classify':
-      // Extract procedure type from user message
-      if (lowerMessage.includes('rhinoplasty') || lowerMessage.includes('nose')) {
-        return 'education';
-      } else if (lowerMessage.includes('facial') || lowerMessage.includes('face') || lowerMessage.includes('rejuvenation')) {
-        return 'education';
-      } else if (lowerMessage.includes('mommy') || lowerMessage.includes('makeover') || lowerMessage.includes('tummy')) {
-        return 'education';
-      } else {
-        return 'education'; // Default to education for any procedure interest
-      }
-      
-    case 'education':
-      if (lowerMessage.includes('results') || lowerMessage.includes('before') || lowerMessage.includes('after') || lowerMessage.includes('photos')) {
-        return 'gallery';
-      } else if (lowerMessage.includes('schedule') || lowerMessage.includes('consultation') || lowerMessage.includes('appointment')) {
-        return 'booking';
-      } else if (lowerMessage.includes('cost') || lowerMessage.includes('price') || lowerMessage.includes('qualified')) {
-        return 'qualify';
-      }
-      return 'education'; // Stay in education for more questions
-      
-    case 'gallery':
-      if (lowerMessage.includes('schedule') || lowerMessage.includes('consultation') || lowerMessage.includes('appointment')) {
-        return 'booking';
-      } else if (lowerMessage.includes('qualified') || lowerMessage.includes('candidate')) {
-        return 'qualify';
-      }
-      return 'qualify'; // Default progression after gallery
-      
-    case 'qualify':
-      if (lowerMessage.includes('schedule') || lowerMessage.includes('consultation') || lowerMessage.includes('ready')) {
-        return 'booking';
-      }
-      return 'booking'; // Default progression after qualification
-      
-    case 'booking':
-      if (lowerMessage.includes('yes') || lowerMessage.includes('schedule') || lowerMessage.includes('book')) {
-        return 'capture';
-      }
-      return 'capture'; // Progress to lead capture
-      
-    case 'capture':
-      // Check if we have enough info to complete
-      const leadInfo = state.leadInfo || {};
-      if (leadInfo.name && (leadInfo.phone || leadInfo.email)) {
-        return 'complete';
-      }
-      return 'capture'; // Stay in capture until we have required info
-      
-    case 'complete':
-      return 'complete'; // Terminal state
-      
-    default:
-      return currentState;
-  }
+  // This function is deprecated - Claude now handles state transitions
+  console.warn('determineNextState is deprecated. State transitions are now handled by Claude.');
+  return currentState;
 }
 
-// Generate state-specific quick picks
+// Generate context-aware quick picks based on state and conversation history
 function generateQuickPicks(
   state: ConversationState, 
   lastBotMessage: string, 
   procedureType?: string
 ): string[] {
-  switch (state) {
-    case 'welcome':
-      return [
-        "I'm interested in rhinoplasty",
-        "Tell me about facial rejuvenation", 
-        "What's a mommy makeover?",
-        "I'd like to schedule a consultation"
-      ];
-      
-    case 'classify':
-      return [
-        "I want to improve my nose",
-        "I look tired all the time",
-        "I want to restore my body after pregnancy",
-        "I'm not sure what procedure I need"
-      ];
-      
-    case 'education':
-      return [
-        "Show me before and after photos",
-        "What's the recovery time?",
-        "How much does it cost?",
-        "Am I a good candidate?"
-      ];
-      
-    case 'gallery':
-      return [
-        "These results look great!",
-        "What's the next step?",
-        "Schedule a consultation",
-        "Tell me more about the procedure"
-      ];
-      
-    case 'qualify':
-      return [
-        "I haven't had previous surgery",
-        "I'm in good health",
-        "I'm ready to move forward",
-        "Schedule my consultation"
-      ];
-      
-    case 'booking':
-      return [
-        "Yes, I'd like to schedule",
-        "What times are available?",
-        "I prefer mornings",
-        "I prefer afternoons"
-      ];
-      
-    case 'capture':
-      if (lastBotMessage.includes('name')) {
-        return ["Sarah Johnson", "Michael Smith", "Jessica Brown"];
-      } else if (lastBotMessage.includes('phone')) {
-        return ["(555) 123-4567", "Text me instead", "Call me at..."];
-      } else if (lastBotMessage.includes('email')) {
-        return ["sarah@email.com", "mike.smith@gmail.com", "Use my phone instead"];
-      }
-      return ["Here's my information", "Let me provide that", "Contact me at..."];
-      
-    case 'complete':
-      return [
-        "Thank you!",
-        "When should I expect your call?",
-        "What should I prepare?",
-        "Start a new conversation"
-      ];
-      
-    default:
-      return [];
+  const lowerBotMessage = lastBotMessage.toLowerCase();
+  
+  // Context-aware suggestions based on bot's last message
+  if (lowerBotMessage.includes('what brings you') || lowerBotMessage.includes('help you explore')) {
+    return [
+      "I'm interested in rhinoplasty",
+      "Tell me about facial rejuvenation", 
+      "What's a mommy makeover?",
+      "I'd like to schedule a consultation"
+    ];
   }
+  
+  if (lowerBotMessage.includes('tell me more') || lowerBotMessage.includes('specific concerns')) {
+    return [
+      "I want to improve my nose shape",
+      "I look tired and want to appear refreshed",
+      "I'd like to restore my pre-pregnancy body",
+      "Can you show me some examples?"
+    ];
+  }
+  
+  if (lowerBotMessage.includes('photos') || lowerBotMessage.includes('results') || lowerBotMessage.includes('examples')) {
+    return [
+      "Show me before and after photos",
+      "What about recovery time?",
+      "How much does this typically cost?",
+      "Am I a good candidate?"
+    ];
+  }
+  
+  if (lowerBotMessage.includes('candidate') || lowerBotMessage.includes('qualify')) {
+    return [
+      "I'm in good health",
+      "I haven't had previous surgery",
+      "I'm ready to schedule a consultation",
+      "Tell me more about the process"
+    ];
+  }
+  
+  if (lowerBotMessage.includes('schedule') || lowerBotMessage.includes('consultation') || lowerBotMessage.includes('appointment')) {
+    return [
+      "Yes, I'd like to schedule",
+      "What times are available?",
+      "I prefer mornings",
+      "Tell me what to expect"
+    ];
+  }
+  
+  if (lowerBotMessage.includes('name') && !lowerBotMessage.includes('procedure')) {
+    return ["John Smith", "Sarah Johnson", "Let me type it"];
+  }
+  
+  if (lowerBotMessage.includes('phone') || lowerBotMessage.includes('number')) {
+    return ["(555) 123-4567", "Text me instead", "I'll provide my email"];
+  }
+  
+  if (lowerBotMessage.includes('email')) {
+    return ["john@email.com", "sarah@gmail.com", "Use my phone instead"];
+  }
+  
+  // Default quick picks based on state if no specific context match
+  const defaultPicks: Record<ConversationState, string[]> = {
+    welcome: [
+      "I'm exploring my options",
+      "Tell me about popular procedures",
+      "I have a specific concern",
+      "Schedule a consultation"
+    ],
+    classify: [
+      "Show me what's possible",
+      "I need more information",
+      "What do you recommend?",
+      "Let's discuss my goals"
+    ],
+    education: [
+      "Show me examples",
+      "What about recovery?",
+      "Tell me about costs",
+      "Next steps?"
+    ],
+    gallery: [
+      "Impressive results!",
+      "Tell me more",
+      "I'm interested",
+      "Different angles?"
+    ],
+    qualify: [
+      "I'm healthy",
+      "No prior surgery",
+      "Some medical history",
+      "Ready to proceed"
+    ],
+    booking: [
+      "Yes, book me",
+      "Morning works",
+      "Afternoon is better",
+      "What's next?"
+    ],
+    capture: [
+      "Here's my info",
+      "Contact me",
+      "Prefer phone",
+      "Prefer email"
+    ],
+    complete: [
+      "Thank you",
+      "What's next?",
+      "When will you call?",
+      "New question"
+    ]
+  };
+  
+  // Add procedure-specific options when relevant
+  if (procedureType && (state === 'education' || state === 'gallery')) {
+    const procedureSpecific = {
+      'rhinoplasty': ["Show nose job results", "Breathing improvements?", "Natural looking?"],
+      'facial-rejuvenation': ["Show facelift results", "Non-surgical options?", "How long does it last?"],
+      'mommy-makeover': ["Show full transformations", "Recovery with kids?", "Staged procedures?"]
+    };
+    
+    const specificOptions = procedureSpecific[procedureType as keyof typeof procedureSpecific];
+    if (specificOptions) {
+      return [...specificOptions, "Schedule consultation"];
+    }
+  }
+  
+  return defaultPicks[state] || defaultPicks.welcome;
 }
 
 // Extract procedure type from user message

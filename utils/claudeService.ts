@@ -6,6 +6,7 @@ export interface StreamingResponse {
   fullText?: string;
   citations?: string[];
   galleryAction?: Record<string, unknown>;
+  nextState?: string;
   message?: string;
 }
 
@@ -14,7 +15,7 @@ export class ClaudeService {
     messages: Message[],
     conversationState: string,
     onChunk: (chunk: StreamingResponse) => void,
-    onComplete: (response: { text: string; citations: string[]; galleryAction?: Record<string, unknown> }) => void,
+    onComplete: (response: { text: string; citations: string[]; galleryAction?: Record<string, unknown>; nextState?: string }) => void,
     onError: (error: string) => void
   ): Promise<void> {
     try {
@@ -64,7 +65,8 @@ export class ClaudeService {
                 onComplete({
                   text: data.fullText || '',
                   citations: data.citations || [],
-                  galleryAction: data.galleryAction
+                  galleryAction: data.galleryAction,
+                  nextState: data.nextState
                 });
               } else if (data.type === 'error') {
                 onError(data.message || 'Unknown error occurred');

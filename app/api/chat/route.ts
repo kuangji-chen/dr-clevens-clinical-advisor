@@ -49,20 +49,44 @@ export async function POST(request: NextRequest) {
 
 CURRENT CONVERSATION STATE: ${conversationState}
 
+CONVERSATION STATES:
+- welcome: Initial greeting, understanding patient needs
+- classify: Identifying specific procedure interests
+- education: Providing procedure information and details
+- gallery: Showing before/after results and examples
+- qualify: Assessing candidacy and medical history
+- booking: Scheduling consultation appointment
+- capture: Collecting contact information
+- complete: Confirming appointment and next steps
+
 INSTRUCTIONS:
 - Respond as Dr. Clevens' knowledgeable assistant
 - Keep responses conversational but informative
 - Include relevant medical citations in [1] format when stating facts
-- Transition the conversation naturally toward booking a consultation
-- If showing before/after results, mention the gallery option
+- Guide the conversation naturally based on patient needs
 - Be encouraging but realistic about expectations
 - Always include appropriate disclaimers for medical advice
+
+STATE TRANSITION RULES:
+- Analyze the user's intent and message content
+- Determine the most appropriate next state based on the conversation
+- You can skip states if the user expresses clear intent (e.g., "I want to book now" can go directly to booking)
+- You can return to previous states if the user has more questions
+- Include the next state in your response as: {"next_state": "state_name"}
+
+IMPORTANT: Always include the next state transition at the end of your response.
+Examples:
+- User asks about a procedure → {"next_state": "education"}
+- User wants to see results → {"next_state": "gallery"}
+- User ready to book → {"next_state": "booking"}
+- User asks more questions about procedure → stay in current state or return to "education"
 
 RESPONSE FORMAT:
 - Use a warm, professional tone
 - Include citations for medical facts: [1], [2], etc.
 - End with a relevant question to continue the conversation
 - Keep responses to 2-3 sentences for better readability
+- ALWAYS include {"next_state": "appropriate_state"} at the very end
 
 GALLERY ACTIONS:
 When the user requests to see images, results, photos, examples, or facility tours, include a JSON action block in your response:
@@ -118,16 +142,19 @@ Include the JSON action block AFTER your text response, on a new line.
             }
           }
           
-          // Send completion signal with citations and gallery actions
+          // Send completion signal with citations, gallery actions, and state transition
           const citations = extractCitations(fullResponse);
           const galleryAction = extractGalleryAction(fullResponse);
-          const cleanedResponse = removeGalleryActionFromText(fullResponse);
+          const nextState = extractNextState(fullResponse);
+          let cleanedResponse = removeGalleryActionFromText(fullResponse);
+          cleanedResponse = removeNextStateFromText(cleanedResponse);
           
           const finalData = JSON.stringify({ 
             type: 'complete', 
             fullText: cleanedResponse,
             citations: citations,
-            galleryAction: galleryAction
+            galleryAction: galleryAction,
+            nextState: nextState
           });
           controller.enqueue(encoder.encode(`data: ${finalData}\n\n`));
           
@@ -204,4 +231,22 @@ function extractGalleryAction(text: string): Record<string, unknown> | null {
 // Remove gallery action JSON from display text
 function removeGalleryActionFromText(text: string): string {
   return text.replace(/\{"action":\{[^}]+\}\}/, '').trim();
+}
+
+// Extract next state from response text
+function extractNextState(text: string): string | null {
+  try {
+    const stateMatch = text.match(/\{"next_state":\s*"([^"]+)"\}/);
+    if (stateMatch && stateMatch[1]) {
+      return stateMatch[1];
+    }
+  } catch (error) {
+    console.log('Failed to parse next state:', error);
+  }
+  return null;
+}
+
+// Remove next state JSON from display text
+function removeNextStateFromText(text: string): string {
+  return text.replace(/\{"next_state":\s*"[^"]+"\}/, '').trim();
 }
