@@ -7,6 +7,21 @@ import MessageComponent from './MessageComponent';
 import CallModal from './CallModal';
 // Removed unused imports - now using semantic gallery triggering
 
+// Helper function to get state order for comparison
+const getStateOrder = (state: string): number => {
+  const stateOrder = {
+    'welcome': 0,
+    'classify': 1,
+    'education': 2,
+    'gallery': 3,
+    'qualify': 4,
+    'booking': 5,
+    'capture': 6,
+    'complete': 7
+  };
+  return stateOrder[state as keyof typeof stateOrder] ?? 999;
+};
+
 const ConversationalAdvisor = () => {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -227,66 +242,38 @@ const ConversationalAdvisor = () => {
             </div>
             
             <div className="space-y-3 mb-8">
-              {/* Welcome State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium text-green-700">Welcome</span>
-              </div>
-              
-              {/* Classify State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium text-green-700">Classify</span>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">rhinoplasty</span>
-              </div>
-              
-              {/* Education State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium text-green-700">Education</span>
-              </div>
-              
-              {/* Gallery State - Current */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-purple-600 flex items-center justify-center">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-                <span className="text-sm font-medium text-purple-700">Gallery</span>
-              </div>
-              
-              {/* Qualify State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-purple-200">
-                </div>
-                <span className="text-sm text-gray-500">Qualify</span>
-              </div>
-              
-              {/* Booking State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-gray-200">
-                </div>
-                <span className="text-sm text-gray-500">Booking</span>
-              </div>
-              
-              {/* Capture State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-gray-200">
-                </div>
-                <span className="text-sm text-gray-500">Capture</span>
-              </div>
-              
-              {/* Complete State */}
-              <div className="flex items-center space-x-3">
-                <div className="w-4 h-4 rounded-full bg-gray-200">
-                </div>
-                <span className="text-sm text-gray-500">Complete</span>
-              </div>
+              {/* Dynamic State Display */}
+              {(['welcome', 'classify', 'education', 'gallery', 'qualify', 'booking', 'capture', 'complete'] as const).map((state) => {
+                const isCompleted = getStateOrder(state) < getStateOrder(currentState);
+                const isCurrent = state === currentState;
+                const isUpcoming = getStateOrder(state) > getStateOrder(currentState);
+                
+                return (
+                  <div key={state} className="flex items-center space-x-3">
+                    <div className={`w-4 h-4 rounded-full ${
+                      isCurrent ? 'bg-purple-600' : 
+                      isCompleted ? 'bg-green-500' : 
+                      'bg-gray-200'
+                    } ${
+                      isCurrent || isCompleted ? 'flex items-center justify-center' : ''
+                    }`}>
+                      {(isCurrent || isCompleted) && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                    </div>
+                    <span className={`text-sm ${
+                      isCurrent ? 'font-medium text-purple-700' :
+                      isCompleted ? 'font-medium text-green-700' :
+                      'text-gray-500'
+                    }`}>
+                      {state.charAt(0).toUpperCase() + state.slice(1)}
+                    </span>
+                    {state === 'classify' && procedureType && isCompleted && (
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                        {procedureType.replace('-', ' ')}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             {/* Current Context Section */}
@@ -297,14 +284,14 @@ const ConversationalAdvisor = () => {
                 <div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Procedure:</span>
-                    <span className="text-sm font-medium text-gray-900">Rhinoplasty</span>
+                    <span className="text-sm font-medium text-gray-900">{procedureType ? procedureType.replace('-', ' ').charAt(0).toUpperCase() + procedureType.replace('-', ' ').slice(1) : 'Not determined'}</span>
                   </div>
                 </div>
                 
                 <div>
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Interest Level:</span>
-                    <span className="text-sm font-medium text-gray-900">High</span>
+                    <span className="text-sm font-medium text-gray-900">{leadInfo?.interestLevel || 'Not assessed'}</span>
                   </div>
                 </div>
                 
