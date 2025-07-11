@@ -1,33 +1,33 @@
-# Dr. Clevens Cosmetic Procedure Advisor Chatbot
+# Dr. Clevens Clinical Advisor
 
-A sophisticated AI-powered chatbot for Dr. Clevens' cosmetic surgery practice, featuring intelligent conversation flow, semantic gallery system, and real-time Claude AI integration.
+An intelligent AI-powered clinical advisor chatbot for Dr. Clevens' cosmetic surgery practice, providing personalized consultation guidance, procedure education, and seamless patient journey management.
 
 ## 🌟 Features
 
-### 🤖 Intelligent Conversation System
-- **8-State Conversation Flow**: Welcome → Classify → Education → Gallery → Qualify → Booking → Capture → Complete
-- **Procedure Detection**: Automatically identifies user interests (rhinoplasty, facial rejuvenation, mommy makeover, breast surgery)
-- **Lead Capture**: Intelligent extraction of contact information
-- **Dynamic Quick Picks**: Context-aware response suggestions
+### 🤖 Intelligent Clinical Consultation System
+- **8-State Patient Journey**: Welcome → Classify → Education → Gallery → Qualify → Booking → Capture → Complete
+- **Procedure Assessment**: Automatically identifies patient interests and provides relevant information
+- **Lead Qualification**: Intelligent extraction and management of patient information
+- **Dynamic Consultation Flow**: Context-aware response suggestions and guidance
 
-### 🖼️ Semantic Gallery System
-- **Natural Language Understanding**: Claude AI automatically triggers relevant image galleries
-- **Multiple Gallery Types**: Before/after results, procedure steps, facility tours, doctor credentials, technique comparisons
-- **Smart Image Display**: Responsive layouts with automatic fallbacks
-- **Context-Aware Filtering**: Shows procedure-specific and demographic-filtered content
+### 🖼️ Semantic Visual Content System
+- **Intelligent Image Display**: Claude AI automatically shows relevant clinical content
+- **Multiple Content Types**: Before/after results, procedure education, facility tours, doctor credentials, technique comparisons
+- **Smart Content Delivery**: Responsive layouts with automatic fallbacks
+- **Context-Aware Filtering**: Shows procedure-specific and patient-demographic-filtered content
 
-### 🎨 Professional Medical UI
-- **Modern Design**: Clean, medical-grade interface with Dr. Clevens branding
-- **Real-time Chat**: Streaming responses with typing indicators
-- **Mobile Responsive**: Optimized for all device sizes
-- **Accessibility**: WCAG compliant with proper contrast and navigation
+### 🎨 Professional Medical Interface
+- **Clinical-Grade Design**: Clean, professional interface with Dr. Clevens branding
+- **Real-time Consultation**: Streaming AI responses with typing indicators
+- **Mobile Responsive**: Optimized for all device sizes and consultation environments
+- **Accessibility Compliant**: WCAG standards for inclusive patient access
 
-### 🔧 Technical Excellence
+### 🔧 Advanced Technical Foundation
 - **Next.js 15**: Latest React framework with App Router
-- **TypeScript**: Full type safety and developer experience
+- **TypeScript**: Full type safety and clinical data integrity
 - **Tailwind CSS v4**: Modern utility-first styling
-- **Zustand**: Lightweight state management
-- **Claude 3.5 Sonnet**: Advanced AI with citations and structured responses
+- **Zustand**: Lightweight patient journey state management
+- **Claude 3.5 Sonnet**: Advanced AI with medical citations and structured responses
 
 ## 🚀 Quick Start
 
@@ -73,66 +73,69 @@ A sophisticated AI-powered chatbot for Dr. Clevens' cosmetic surgery practice, f
 chatbot-advisor/
 ├── app/
 │   ├── api/
-│   │   ├── chat/route.ts           # Claude AI integration with streaming
-│   │   └── placeholder/[...]/route.ts # Dynamic placeholder images
-│   ├── globals.css                 # Global styles and Tailwind imports
-│   ├── layout.tsx                  # Root layout with metadata
-│   └── page.tsx                    # Main chat interface page
+│   │   ├── chat/route.ts           # Claude AI clinical consultation integration
+│   │   └── placeholder/[...]/route.ts # Dynamic clinical content placeholders
+│   ├── globals.css                 # Global medical UI styles
+│   ├── layout.tsx                  # Root layout with clinical metadata
+│   └── page.tsx                    # Main clinical advisor interface
 ├── components/
-│   ├── ConversationalAdvisor.tsx   # Main chat component
-│   ├── MessageComponent.tsx        # Message rendering with gallery support
-│   └── CallModal.tsx              # Voice consultation modal
+│   ├── ConversationalAdvisor.tsx   # Main clinical consultation component
+│   ├── MessageComponent.tsx        # Clinical message rendering with visual content
+│   └── CallModal.tsx              # Voice consultation scheduling modal
 ├── data/
-│   └── galleryImages.ts           # Gallery data and helper functions
+│   └── galleryImages.ts           # Clinical visual content and educational materials
 ├── store/
-│   └── conversationStore.ts       # Zustand state management
+│   └── conversationStore.ts       # Patient journey state management
 ├── types/
-│   └── conversation.ts            # TypeScript interfaces
+│   └── conversation.ts            # Clinical consultation TypeScript interfaces
 ├── utils/
-│   ├── claudeService.ts           # Claude API service layer
-│   └── sessionStorage.ts          # Session persistence utilities
-├── GALLERY_SYSTEM.md              # Detailed gallery documentation
+│   ├── claudeService.ts           # Claude AI clinical service layer
+│   └── sessionStorage.ts          # Patient session persistence utilities
+├── GALLERY_SYSTEM.md              # Visual content system documentation
 ├── TECHNICAL_SPEC.md              # Complete technical specification
-└── next.config.ts                 # Next.js configuration
+└── next.config.ts                 # Next.js configuration for clinical app
 ```
 
-## 🎯 Usage Examples
+## 🎯 Clinical Usage Examples
 
-### Natural Gallery Triggers
+### Natural Patient Interactions
 ```
-User: "Show me before and after photos"
-→ Displays before/after results gallery
+Patient: "I'm interested in rhinoplasty"
+→ Provides detailed procedure information and assessment
 
-User: "Can I see your facility?"
-→ Shows facility tour gallery
+Patient: "Show me before and after photos"
+→ Displays relevant patient results and educational content
 
-User: "What are Dr. Clevens' credentials?"
-→ Displays doctor credentials gallery
+Patient: "Can I see your facility?"
+→ Shows facility tour and clinical environment
 
-User: "How does rhinoplasty work?"
-→ Shows procedure steps gallery
+Patient: "What are Dr. Clevens' credentials?"
+→ Displays doctor qualifications and professional background
+
+Patient: "How does the consultation process work?"
+→ Explains consultation flow and scheduling options
 ```
 
-### Conversation Flow
+### Patient Journey Flow
 ```
-1. Welcome: "Hi there! I'm here to help you explore your options with Dr. Clevens."
-2. Classify: User expresses interest in specific procedure
-3. Education: Detailed information about the procedure
-4. Gallery: Visual examples and facility tour
+1. Welcome: Initial greeting and needs assessment
+2. Classify: Procedure interest identification and education
+3. Education: Detailed clinical information and patient education
+4. Gallery: Visual examples and facility introduction
 5. Qualify: Medical history and candidacy assessment
-6. Booking: Consultation scheduling
-7. Capture: Contact information collection
-8. Complete: Summary and next steps
+6. Booking: Consultation scheduling and preparation
+7. Capture: Patient contact information and preferences
+8. Complete: Journey summary and next steps coordination
 ```
 
 ## 🛠️ Development
 
 ### Key Technologies
 - **Frontend**: Next.js 15, React 18, TypeScript, Tailwind CSS v4
-- **State Management**: Zustand with session persistence
-- **AI Integration**: Claude 3.5 Sonnet via Anthropic SDK
-- **Styling**: Modern medical UI with responsive design
-- **Icons**: Lucide React icon library
+- **Clinical State Management**: Zustand with patient session persistence
+- **AI Integration**: Claude 3.5 Sonnet via Anthropic SDK for clinical responses
+- **Medical UI Styling**: Professional medical interface with responsive design
+- **Clinical Icons**: Lucide React medical and interface icons
 
 ### Environment Setup
 ```bash
@@ -159,32 +162,33 @@ ANTHROPIC_API_KEY=sk-ant-api03-your-claude-key
 NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
-## 📈 Features in Detail
+## 📈 Clinical Features in Detail
 
-### Semantic Gallery System
-The chatbot intelligently displays relevant images based on conversation context:
+### Intelligent Visual Content System
+The clinical advisor intelligently displays relevant content based on patient consultation context:
 
-- **Before/After Results**: Patient results filtered by procedure type
-- **Procedure Steps**: Educational content showing surgical process  
-- **Facility Tour**: Office spaces and medical equipment
-- **Doctor Credentials**: Professional qualifications and awards
-- **Technique Comparison**: Advanced surgical methods
+- **Patient Results**: Before/after outcomes filtered by procedure type
+- **Procedure Education**: Educational content showing surgical process and techniques
+- **Facility Introduction**: Office spaces, surgical suites, and medical equipment
+- **Doctor Credentials**: Professional qualifications, certifications, and recognition
+- **Technique Education**: Advanced surgical methods and approach comparisons
 
-See [GALLERY_SYSTEM.md](./GALLERY_SYSTEM.md) for complete documentation.
+See [GALLERY_SYSTEM.md](./GALLERY_SYSTEM.md) for complete visual content documentation.
 
-### Conversation State Management
-Smart flow control with:
-- Procedure type detection and classification
-- Context-aware response generation
-- Dynamic quick pick suggestions
-- Lead information extraction
-- Session persistence
+### Patient Journey Management
+Smart consultation flow control with:
+- Procedure interest detection and classification
+- Context-aware clinical response generation
+- Dynamic consultation guidance suggestions
+- Patient information collection and management
+- Session-based consultation persistence
 
-### Medical Compliance
-- Professional medical disclaimers
-- Emphasis on consultation requirements
-- No specific medical diagnoses
-- Privacy-compliant data handling
+### Medical Compliance & Standards
+- Professional medical disclaimers and legal compliance
+- Emphasis on in-person consultation requirements
+- No diagnostic capabilities or medical advice
+- HIPAA-compliant data handling practices
+- Privacy-focused patient interaction design
 
 ## 🚀 Deployment
 
@@ -200,51 +204,51 @@ vercel
 ```
 
 ### Environment Variables for Production
-- `ANTHROPIC_API_KEY`: Your Claude API key
-- `NEXT_PUBLIC_APP_URL`: Your domain URL
+- `ANTHROPIC_API_KEY`: Your Claude API key for clinical AI responses
+- `NEXT_PUBLIC_APP_URL`: Your clinical advisor domain URL
 
 ## 📚 Documentation
 
-- [Gallery System](./GALLERY_SYSTEM.md) - Comprehensive gallery documentation
+- [Visual Content System](./GALLERY_SYSTEM.md) - Clinical visual content documentation
 - [Technical Specification](./TECHNICAL_SPEC.md) - Complete technical details
-- [API Routes](./app/api/) - Backend API implementation
-- [Components](./components/) - React component documentation
+- [API Routes](./app/api/) - Backend clinical consultation implementation
+- [Components](./components/) - React clinical component documentation
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
+2. Create a feature branch: `git checkout -b feature/clinical-enhancement`
+3. Commit your changes: `git commit -m 'Add clinical feature'`
+4. Push to the branch: `git push origin feature/clinical-enhancement`
 5. Open a Pull Request
 
 ### Development Guidelines
-- Follow TypeScript best practices
+- Follow medical software best practices
 - Use semantic commit messages
-- Maintain test coverage
-- Update documentation for new features
+- Maintain clinical compliance standards
+- Update documentation for new clinical features
 
 ## 🔒 Security & Privacy
 
-- **No data persistence**: Conversations are session-only
-- **HIPAA considerations**: No medical records stored
-- **API security**: Server-side Claude API calls only
-- **Input validation**: Sanitized user inputs
+- **No persistent patient data**: Consultations are session-only
+- **HIPAA considerations**: No medical records or PHI stored
+- **API security**: Server-side Claude AI calls only
+- **Input validation**: Sanitized patient inputs and clinical data protection
 
 ## 📄 License
 
-This project is proprietary software for Dr. Clevens' medical practice.
+This project is proprietary software for Dr. Clevens Face and Body Specialists medical practice.
 
 ## 🆘 Support
 
-For technical support or questions:
+For technical support or clinical advisor questions:
 - Review the [Technical Specification](./TECHNICAL_SPEC.md)
-- Check the [Gallery System Documentation](./GALLERY_SYSTEM.md)
+- Check the [Visual Content System Documentation](./GALLERY_SYSTEM.md)
 - Open an issue in the repository
 
 ## 🚀 Next.js Information
 
-This project is built with [Next.js](https://nextjs.org) and bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This clinical advisor is built with [Next.js](https://nextjs.org) and bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ### Learn More About Next.js
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API
@@ -253,4 +257,4 @@ This project is built with [Next.js](https://nextjs.org) and bootstrapped with [
 
 ---
 
-**Built with ❤️ for Dr. Clevens Face and Body Specialists**
+**Clinical Advisor built with ❤️ for Dr. Clevens Face and Body Specialists**
