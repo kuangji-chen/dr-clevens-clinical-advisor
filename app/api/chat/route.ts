@@ -44,10 +44,19 @@ export async function POST(request: NextRequest) {
   try {
     const { messages, conversationState } = await request.json();
     
+    // Parse enhanced conversation context
+    let contextInfo;
+    try {
+      contextInfo = JSON.parse(conversationState);
+    } catch {
+      // Fallback for simple string state
+      contextInfo = { currentState: conversationState };
+    }
+    
     // Build conversation context
     const systemPrompt = `${MEDICAL_CONTEXT}
 
-CURRENT CONVERSATION STATE: ${conversationState}
+CURRENT CONVERSATION CONTEXT: ${JSON.stringify(contextInfo, null, 2)}
 
 CONVERSATION STATES:
 - welcome: Initial greeting, understanding patient needs
@@ -88,24 +97,48 @@ RESPONSE FORMAT:
 - Keep responses to 2-3 sentences for better readability
 - ALWAYS include {"next_state": "appropriate_state"} at the very end
 
-GALLERY ACTIONS:
-When the user requests to see images, results, photos, examples, or facility tours, include a JSON action block in your response:
+SEMANTIC GALLERY SYSTEM:
+Use your intelligence to determine when visual content would enhance the conversation. Consider the user's intent, conversation context, and natural flow.
 
-For before/after photos: {"action":{"show_gallery":true,"gallery_type":"before_after","procedure_type":"rhinoplasty","image_count":2}}
-For procedure steps: {"action":{"show_gallery":true,"gallery_type":"procedure_steps","procedure_type":"rhinoplasty","image_count":3}}
-For facility tour: {"action":{"show_gallery":true,"gallery_type":"facility_tour","image_count":3}}
-For credentials: {"action":{"show_gallery":true,"gallery_type":"doctor_credentials","image_count":2}}
-For techniques: {"action":{"show_gallery":true,"gallery_type":"technique_comparison","procedure_type":"rhinoplasty","image_count":2}}
+GALLERY DECISION FRAMEWORK:
+Analyze each user message for:
+1. **Visual Intent**: Does the user seem interested in seeing something visual?
+2. **Conversation Context**: Would showing images naturally help answer their question?
+3. **Educational Value**: Would visuals enhance understanding of what they're asking about?
+4. **Conversation Flow**: Is this a natural moment to introduce visuals?
 
-Examples of user requests that should trigger gallery actions:
-- "Show me before and after photos" → before_after
-- "Can I see examples?" → before_after
-- "What does the procedure look like?" → procedure_steps
-- "Show me your facility" → facility_tour
-- "What are Dr. Clevens credentials?" → doctor_credentials
-- "How does this technique work?" → technique_comparison
+AVAILABLE GALLERY TYPES:
+- before_after: Patient transformation results
+- procedure_steps: How procedures are performed
+- facility_tour: Dr. Clevens' office and facilities
+- doctor_credentials: Certifications and qualifications
+- technique_comparison: Different surgical techniques
 
-Include the JSON action block AFTER your text response, on a new line.
+SEMANTIC TRIGGERS (use your judgment):
+- User expresses curiosity about results ("what kind of results", "how effective", "what to expect")
+- User asks about the procedure process ("how it works", "what happens during")
+- User wants to understand techniques or approaches
+- User inquires about Dr. Clevens or the practice
+- User seems hesitant and would benefit from seeing examples
+- Natural conversation progression where visuals would help
+
+CONTEXTUAL CONSIDERATIONS:
+- Don't repeat the same gallery type if recently shown
+- Consider the user's emotional state and readiness
+- Match gallery type to their specific interests
+- Use conversation history to avoid redundancy
+- Be responsive to follow-up requests for different views
+
+EXAMPLES of SEMANTIC DECISION MAKING:
+- "I'm worried about looking unnatural" → before_after (natural-looking results)
+- "How invasive is the procedure?" → procedure_steps (show gentle approach)
+- "I'm not sure about this doctor" → doctor_credentials (build trust)
+- "What's recovery like?" → before_after (healing progression) or procedure_steps
+- "Tell me about your practice" → facility_tour (comfortable environment)
+
+FORMAT: Include {"action":{"show_gallery":true,"gallery_type":"type","procedure_type":"procedure","image_count":2-4}} when appropriate.
+
+Trust your semantic understanding - show galleries when they would naturally enhance the conversation and help the user.
 `;
 
     const response = await anthropic.messages.create({
@@ -146,6 +179,13 @@ Include the JSON action block AFTER your text response, on a new line.
           const citations = extractCitations(fullResponse);
           const galleryAction = extractGalleryAction(fullResponse);
           const nextState = extractNextState(fullResponse);
+          
+          // Debug logging for gallery triggers
+          if (galleryAction) {
+            console.log('🖼️ Gallery action triggered:', galleryAction);
+            console.log('📝 Full Claude response:', fullResponse);
+          }
+          
           let cleanedResponse = removeGalleryActionFromText(fullResponse);
           cleanedResponse = removeNextStateFromText(cleanedResponse);
           

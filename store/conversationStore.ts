@@ -91,10 +91,22 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       const currentState = state.currentState;
       console.log('🔄 Current state:', { currentState, userMessage });
 
-      // Send to Claude API
+      // Send to Claude API with enhanced context
+      const conversationContext = {
+        currentState,
+        procedureType: state.procedureType,
+        messageCount: state.messages.length,
+        hasSeenGallery: state.messages.some(m => m.type === 'gallery'),
+        recentGalleryTypes: state.messages
+          .filter(m => m.type === 'gallery')
+          .slice(-2)
+          .map(m => 'gallery_shown'),
+        leadInfo: state.leadInfo
+      };
+      
       ClaudeService.sendMessage(
         [...state.messages, userMsg],
-        currentState,
+        JSON.stringify(conversationContext),
         // On chunk received (streaming)
         (chunk) => {
           if (chunk.type === 'text_delta' && chunk.text) {
@@ -260,7 +272,7 @@ function generateQuickPicks(
       "I want to improve my nose shape",
       "I look tired and want to appear refreshed",
       "I'd like to restore my pre-pregnancy body",
-      "Can you show me some examples?"
+      "What results can I expect?"
     ];
   }
   
@@ -318,10 +330,10 @@ function generateQuickPicks(
       "Let's discuss my goals"
     ],
     education: [
-      "Show me examples",
-      "What about recovery?",
+      "What results can I expect?",
+      "What about recovery?", 
       "Tell me about costs",
-      "Next steps?"
+      "Am I a good candidate?"
     ],
     gallery: [
       "Impressive results!",
@@ -355,18 +367,14 @@ function generateQuickPicks(
     ]
   };
   
-  // Add procedure-specific options when relevant
-  if (procedureType && (state === 'education' || state === 'gallery')) {
-    const procedureSpecific = {
-      'rhinoplasty': ["Show nose job results", "Breathing improvements?", "Natural looking?"],
-      'facial-rejuvenation': ["Show facelift results", "Non-surgical options?", "How long does it last?"],
-      'mommy-makeover': ["Show full transformations", "Recovery with kids?", "Staged procedures?"]
-    };
-    
-    const specificOptions = procedureSpecific[procedureType as keyof typeof procedureSpecific];
-    if (specificOptions) {
-      return [...specificOptions, "Schedule consultation"];
-    }
+  // Add procedure-specific options when in gallery state
+  if (procedureType && state === 'gallery') {
+    return [
+      "These look great!",
+      "What about recovery?",
+      "How natural do they look?",
+      "Ready to schedule consultation"
+    ];
   }
   
   return defaultPicks[state] || defaultPicks.welcome;
