@@ -10,9 +10,17 @@ export interface Message {
 }
 
 export interface GalleryImage {
-  before: string;
-  after: string;
+  before?: string;
+  after?: string;
+  image?: string; // For single images (facility, team, etc.)
   caption: string;
+  procedure?: string;
+  ageRange?: string;
+  gender?: 'male' | 'female';
+  description?: string;
+  type: 'before_after' | 'procedure_steps' | 'facility_tour' | 'doctor_credentials' | 'technique_comparison';
+  caseId?: string; // Unique identifier for tracking
+  isReal?: boolean; // Flag to indicate if these are real patient photos
 }
 
 export interface LeadInfo {
@@ -20,6 +28,7 @@ export interface LeadInfo {
   phone?: string;
   email?: string;
   preferredTime?: 'morning' | 'afternoon';
+  interestLevel?: string;
 }
 
 export interface ConversationStore {

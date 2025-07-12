@@ -246,7 +246,6 @@ const ConversationalAdvisor = () => {
               {(['welcome', 'classify', 'education', 'gallery', 'qualify', 'booking', 'capture', 'complete'] as const).map((state) => {
                 const isCompleted = getStateOrder(state) < getStateOrder(currentState);
                 const isCurrent = state === currentState;
-                const isUpcoming = getStateOrder(state) > getStateOrder(currentState);
                 
                 return (
                   <div key={state} className="flex items-center space-x-3">

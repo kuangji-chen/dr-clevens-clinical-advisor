@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Message } from '@/types/conversation';
 
 interface MessageComponentProps {
@@ -6,6 +6,15 @@ interface MessageComponentProps {
 }
 
 const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
+  const handleImageError = (imageSrc: string, fallbackSrc: string, event: React.SyntheticEvent<HTMLImageElement, Event>) => {
+    if (!failedImages.has(imageSrc)) {
+      setFailedImages(prev => new Set(prev).add(imageSrc));
+      (event.target as HTMLImageElement).src = fallbackSrc;
+    }
+  };
+
   if (message.type === 'user') {
     return (
       <div className="flex justify-end mb-6">
@@ -59,17 +68,26 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
       <div className="ml-14 grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
         {message.images.map((img, imgIndex) => (
           <div key={imgIndex} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            {img.before === img.after ? (
-              // Single image display (facility, credentials, etc.)
+            {img.before === img.after || !img.after ? (
+              // Single image display (facility, credentials, procedure steps, etc.)
               <div className="relative">
                 <img 
-                  src={img.before} 
+                  src={img.image || img.before} 
                   alt={img.caption} 
                   className="w-full h-64 object-cover" 
                   onError={(e) => {
-                    e.currentTarget.src = '/api/placeholder/400/300';
+                    handleImageError(
+                      img.image || img.before || '', 
+                      '/api/placeholder/400/300', 
+                      e
+                    );
                   }}
                 />
+                {img.isReal && (
+                  <span className="absolute top-3 right-3 bg-green-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded-full">
+                    Real Patient Photo
+                  </span>
+                )}
               </div>
             ) : (
               // Before/after comparison
@@ -80,7 +98,7 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
                     alt="Before" 
                     className="w-full h-56 object-cover" 
                     onError={(e) => {
-                      e.currentTarget.src = '/api/placeholder/300/400';
+                      handleImageError(img.before || '', '/api/placeholder/300/400', e);
                     }}
                   />
                   <span className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-1 rounded-full">Before</span>
@@ -91,16 +109,38 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
                     alt="After" 
                     className="w-full h-56 object-cover"
                     onError={(e) => {
-                      e.currentTarget.src = '/api/placeholder/300/400';
+                      handleImageError(img.after || '', '/api/placeholder/300/400', e);
                     }}
                   />
                   <span className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-1 rounded-full">After</span>
+                  {img.isReal && (
+                    <span className="absolute top-3 right-3 bg-green-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded-full">
+                      Real Result
+                    </span>
+                  )}
                 </div>
               </div>
             )}
             <div className="p-4">
-              <p className="text-sm font-medium text-gray-800">{img.caption}</p>
-              <p className="text-sm text-gray-500 mt-1">Results may vary</p>
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-800">{img.caption}</p>
+                  {img.description && (
+                    <p className="text-xs text-gray-600 mt-1">{img.description}</p>
+                  )}
+                  {img.caseId && (
+                    <p className="text-xs text-gray-500 mt-1">Case ID: {img.caseId}</p>
+                  )}
+                </div>
+                {img.isReal && (
+                  <div className="ml-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                      ✓ Verified
+                    </span>
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Results may vary</p>
             </div>
           </div>
         ))}

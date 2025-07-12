@@ -158,14 +158,21 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
                   return {
                     before: img.before!,
                     after: img.after!,
-                    caption: `${img.procedure?.replace('-', ' ') || 'Procedure'} - ${img.caption}`
+                    caption: `${img.procedure?.replace('-', ' ') || 'Procedure'} - ${img.caption}`,
+                    type: 'before_after' as const,
+                    description: img.description,
+                    caseId: img.caseId,
+                    isReal: img.isReal
                   };
                 } else {
                   // For single images (facility, credentials, etc.)
                   return {
-                    before: img.image!,
-                    after: img.image!, // Same image for both sides
-                    caption: img.caption
+                    image: img.image!,
+                    caption: img.caption,
+                    type: img.type,
+                    description: img.description,
+                    caseId: img.caseId,
+                    isReal: img.isReal
                   };
                 }
               });
@@ -177,7 +184,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
                   { 
                     before: '/api/placeholder/300/400', 
                     after: '/api/placeholder/300/400', 
-                    caption: 'Images not available' 
+                    caption: 'Images not available',
+                    type: 'before_after' as const,
+                    isReal: false
                   }
                 ]
               };
