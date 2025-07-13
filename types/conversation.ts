@@ -10,9 +10,12 @@ export interface Message {
 }
 
 export interface GalleryImage {
-  before: string;
-  after: string;
+  image: string; // Single image containing before/after or standalone
   caption: string;
+  procedure?: string;
+  description?: string;
+  type: 'before_after' | 'procedure' | 'facility' | 'credentials';
+  caseId?: string;
 }
 
 export interface LeadInfo {
@@ -20,6 +23,7 @@ export interface LeadInfo {
   phone?: string;
   email?: string;
   preferredTime?: 'morning' | 'afternoon';
+  interestLevel?: string;
 }
 
 export interface ConversationStore {
