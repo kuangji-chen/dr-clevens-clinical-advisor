@@ -10,17 +10,12 @@ export interface Message {
 }
 
 export interface GalleryImage {
-  before?: string;
-  after?: string;
-  image?: string; // For single images (facility, team, etc.)
+  image: string; // Single image containing before/after or standalone
   caption: string;
   procedure?: string;
-  ageRange?: string;
-  gender?: 'male' | 'female';
   description?: string;
-  type: 'before_after' | 'procedure_steps' | 'facility_tour' | 'doctor_credentials' | 'technique_comparison';
-  caseId?: string; // Unique identifier for tracking
-  isReal?: boolean; // Flag to indicate if these are real patient photos
+  type: 'before_after' | 'procedure' | 'facility' | 'credentials';
+  caseId?: string;
 }
 
 export interface LeadInfo {

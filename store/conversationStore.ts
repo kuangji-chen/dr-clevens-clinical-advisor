@@ -152,29 +152,15 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
               const galleryImages = getImagesForAction(response.galleryAction as unknown as GalleryAction);
               console.log('📸 Fetched gallery images:', galleryImages);
               
-              // Format images for display
+              // Format images for display - all images are now single images
               const formattedImages = galleryImages.map(img => {
-                if (img.type === 'before_after') {
-                  return {
-                    before: img.before!,
-                    after: img.after!,
-                    caption: `${img.procedure?.replace('-', ' ') || 'Procedure'} - ${img.caption}`,
-                    type: 'before_after' as const,
-                    description: img.description,
-                    caseId: img.caseId,
-                    isReal: img.isReal
-                  };
-                } else {
-                  // For single images (facility, credentials, etc.)
-                  return {
-                    image: img.image!,
-                    caption: img.caption,
-                    type: img.type,
-                    description: img.description,
-                    caseId: img.caseId,
-                    isReal: img.isReal
-                  };
-                }
+                return {
+                  image: img.image,
+                  caption: img.caption,
+                  type: img.type,
+                  description: img.description,
+                  caseId: img.caseId
+                };
               });
 
               const galleryMessage: Message = {
@@ -182,11 +168,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 images: formattedImages.length > 0 ? formattedImages : [
                   { 
-                    before: '/api/placeholder/300/400', 
-                    after: '/api/placeholder/300/400', 
+                    image: 'https://picsum.photos/800/400?random=100',
                     caption: 'Images not available',
-                    type: 'before_after' as const,
-                    isReal: false
+                    type: 'before_after' as const
                   }
                 ]
               };

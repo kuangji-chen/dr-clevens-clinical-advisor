@@ -68,59 +68,21 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
       <div className="ml-14 grid grid-cols-1 lg:grid-cols-2 gap-6 my-6">
         {message.images.map((img, imgIndex) => (
           <div key={imgIndex} className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-            {img.before === img.after || !img.after ? (
-              // Single image display (facility, credentials, procedure steps, etc.)
-              <div className="relative">
-                <img 
-                  src={img.image || img.before} 
-                  alt={img.caption} 
-                  className="w-full h-64 object-cover" 
-                  onError={(e) => {
-                    handleImageError(
-                      img.image || img.before || '', 
-                      '/api/placeholder/400/300', 
-                      e
-                    );
-                  }}
-                />
-                {img.isReal && (
-                  <span className="absolute top-3 right-3 bg-green-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded-full">
-                    Real Patient Photo
-                  </span>
-                )}
-              </div>
-            ) : (
-              // Before/after comparison
-              <div className="grid grid-cols-2">
-                <div className="relative">
-                  <img 
-                    src={img.before} 
-                    alt="Before" 
-                    className="w-full h-56 object-cover" 
-                    onError={(e) => {
-                      handleImageError(img.before || '', '/api/placeholder/300/400', e);
-                    }}
-                  />
-                  <span className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-1 rounded-full">Before</span>
-                </div>
-                <div className="relative">
-                  <img 
-                    src={img.after} 
-                    alt="After" 
-                    className="w-full h-56 object-cover"
-                    onError={(e) => {
-                      handleImageError(img.after || '', '/api/placeholder/300/400', e);
-                    }}
-                  />
-                  <span className="absolute top-3 left-3 bg-black bg-opacity-70 text-white text-sm px-3 py-1 rounded-full">After</span>
-                  {img.isReal && (
-                    <span className="absolute top-3 right-3 bg-green-600 bg-opacity-90 text-white text-xs px-2 py-1 rounded-full">
-                      Real Result
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
+            {/* All images are now single images containing before/after effects */}
+            <div className="relative">
+              <img 
+                src={img.image} 
+                alt={img.caption} 
+                className="w-full h-64 object-cover" 
+                onError={(e) => {
+                  handleImageError(
+                    img.image, 
+                    '/api/placeholder/400/300', 
+                    e
+                  );
+                }}
+              />
+            </div>
             <div className="p-4">
               <div className="flex justify-between items-start">
                 <div className="flex-1">
@@ -132,13 +94,6 @@ const MessageComponent: React.FC<MessageComponentProps> = ({ message }) => {
                     <p className="text-xs text-gray-500 mt-1">Case ID: {img.caseId}</p>
                   )}
                 </div>
-                {img.isReal && (
-                  <div className="ml-2">
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                      ✓ Verified
-                    </span>
-                  </div>
-                )}
               </div>
               <p className="text-sm text-gray-500 mt-2">Results may vary</p>
             </div>

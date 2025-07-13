@@ -11,123 +11,12 @@ export interface GalleryImage {
 
 export interface GalleryAction {
   show_gallery: boolean;
-  gallery_type: 'before_after' | 'procedure' | 'facility' | 'credentials';
+  gallery_type?: keyof typeof newGalleryImagesByType | 'all';
   procedure_type?: string;
   image_count?: number;
 }
 
 // Simplified gallery categories based on Dr. Clevens website
-export const galleryImagesByType = {
-  before_after: [
-    // Rhinoplasty
-    {
-      image: 'https://picsum.photos/800/400?random=1',
-      caption: 'Rhinoplasty Result',
-      procedure: 'rhinoplasty',
-      description: 'Piezo rhinoplasty with dorsal hump reduction and tip refinement',
-      type: 'before_after' as const,
-      caseId: 'RH-001'
-    },
-    {
-      image: 'https://picsum.photos/800/400?random=2',
-      caption: 'Rhinoplasty Result',
-      procedure: 'rhinoplasty',
-      description: 'Structural rhinoplasty for improved breathing and aesthetics',
-      type: 'before_after' as const,
-      caseId: 'RH-002'
-    },
-    // Facial Rejuvenation
-    {
-      image: 'https://picsum.photos/800/400?random=3',
-      caption: 'Facelift Result',
-      procedure: 'facial-rejuvenation',
-      description: 'Deep plane facelift with neck lift and fat grafting',
-      type: 'before_after' as const,
-      caseId: 'FL-001'
-    },
-    {
-      image: 'https://picsum.photos/800/400?random=4',
-      caption: 'Blepharoplasty Result',
-      procedure: 'facial-rejuvenation',
-      description: 'Upper and lower blepharoplasty with canthopexy',
-      type: 'before_after' as const,
-      caseId: 'BL-001'
-    },
-    // Body Contouring
-    {
-      image: 'https://picsum.photos/800/400?random=5',
-      caption: 'Mommy Makeover Result',
-      procedure: 'mommy-makeover',
-      description: 'Full tummy tuck with muscle repair, breast lift and augmentation',
-      type: 'before_after' as const,
-      caseId: 'MM-001'
-    },
-    {
-      image: 'https://picsum.photos/800/400?random=6',
-      caption: 'Tummy Tuck Result',
-      procedure: 'body-contouring',
-      description: 'Extended tummy tuck with liposuction',
-      type: 'before_after' as const,
-      caseId: 'TT-001'
-    },
-    // Breast Surgery
-    {
-      image: 'https://picsum.photos/800/400?random=7',
-      caption: 'Breast Augmentation Result',
-      procedure: 'breast-surgery',
-      description: 'Breast augmentation with cohesive gel implants',
-      type: 'before_after' as const,
-      caseId: 'BA-001'
-    }
-  ],
-
-  procedure: [
-    {
-      image: 'https://picsum.photos/600/400?random=20',
-      caption: 'Consultation and Planning',
-      procedure: 'general',
-      description: 'Comprehensive examination and surgical planning',
-      type: 'procedure' as const,
-      caseId: 'PS-001'
-    },
-    {
-      image: 'https://picsum.photos/600/400?random=21',
-      caption: 'Surgery Suite',
-      procedure: 'general',
-      description: 'State-of-the-art surgical facility',
-      type: 'procedure' as const,
-      caseId: 'PS-002'
-    }
-  ],
-
-  facility: [
-    {
-      image: 'https://picsum.photos/800/600?random=30',
-      caption: 'Reception Area',
-      description: 'Welcoming and comfortable patient environment',
-      type: 'facility' as const,
-      caseId: 'FT-001'
-    },
-    {
-      image: 'https://picsum.photos/800/600?random=31',
-      caption: 'Consultation Rooms',
-      description: 'Private consultation suites with advanced imaging',
-      type: 'facility' as const,
-      caseId: 'FT-002'
-    }
-  ],
-
-  credentials: [
-    {
-      image: 'https://picsum.photos/400/500?random=40',
-      caption: 'Dr. Ross Clevens, MD, FACS',
-      description: 'Board-certified plastic surgeon with 25+ years experience',
-      type: 'credentials' as const,
-      caseId: 'DC-001'
-    }
-  ]
-};
-
 export const newGalleryImagesByType = {
   'Face': {
     'Facelift': [
@@ -226,59 +115,165 @@ export const newGalleryImagesByType = {
 
 
 
-// Simplified getter functions
-export function getImagesByType(
-  galleryType: keyof typeof galleryImagesByType,
-  procedureType?: string,
-  limit: number = 2
-): GalleryImage[] {
-  const images = galleryImagesByType[galleryType] || [];
+// Remove old unused structure references
+const oldGalleryImagesByType = {
+  before_after: [],
+  procedure: [],
+  facility: [],
+  credentials: []
+};
+
+// Main export - use newGalleryImagesByType as the primary export
+export const galleryImagesByType = newGalleryImagesByType;
+
+// Helper function to convert new structure to GalleryImage format
+function convertToGalleryImage(category: string, procedure: string, imageUrl: string, index: number): GalleryImage {
+  return {
+    image: imageUrl,
+    caption: `${procedure} Result`,
+    procedure: procedure.toLowerCase().replace(/\s+/g, '-'),
+    description: `${procedure} treatment by Dr. Clevens`,
+    type: 'before_after',
+    caseId: `${category.substring(0, 2).toUpperCase()}-${procedure.substring(0, 3).toUpperCase()}-${index + 1}`
+  };
+}
+
+// Updated getter functions for new structure
+export function getImagesByCategory(category: keyof typeof newGalleryImagesByType, limit: number = 2): GalleryImage[] {
+  const categoryData = newGalleryImagesByType[category];
+  if (!categoryData) return [];
   
-  const filtered = procedureType 
-    ? images.filter(img => 'procedure' in img && img.procedure === procedureType)
-    : images;
-    
-  return filtered.slice(0, limit);
+  const results: GalleryImage[] = [];
+  let count = 0;
+  
+  for (const [procedure, images] of Object.entries(categoryData)) {
+    if (count >= limit) break;
+    for (let i = 0; i < images.length && count < limit; i++) {
+      results.push(convertToGalleryImage(category, procedure, images[i], i));
+      count++;
+    }
+  }
+  
+  return results;
 }
 
 export function getImagesByProcedure(procedureType: string, limit: number = 2): GalleryImage[] {
-  return getImagesByType('before_after', procedureType, limit);
+  const results: GalleryImage[] = [];
+  let count = 0;
+  
+  for (const [category, procedures] of Object.entries(newGalleryImagesByType)) {
+    if (count >= limit) break;
+    
+    for (const [procedure, images] of Object.entries(procedures)) {
+      if (count >= limit) break;
+      
+      const normalizedProcedure = procedure.toLowerCase().replace(/\s+/g, '-');
+      const normalizedSearchTerm = procedureType.toLowerCase().replace(/\s+/g, '-');
+      
+      if (normalizedProcedure.includes(normalizedSearchTerm) || normalizedSearchTerm.includes(normalizedProcedure)) {
+        for (let i = 0; i < images.length && count < limit; i++) {
+          results.push(convertToGalleryImage(category, procedure, images[i], i));
+          count++;
+        }
+      }
+    }
+  }
+  
+  return results;
+}
+
+export function getAllImages(limit: number = 10): GalleryImage[] {
+  const results: GalleryImage[] = [];
+  let count = 0;
+  
+  for (const [category, procedures] of Object.entries(newGalleryImagesByType)) {
+    if (count >= limit) break;
+    
+    for (const [procedure, images] of Object.entries(procedures)) {
+      if (count >= limit) break;
+      
+      for (let i = 0; i < images.length && count < limit; i++) {
+        results.push(convertToGalleryImage(category, procedure, images[i], i));
+        count++;
+      }
+    }
+  }
+  
+  return results;
 }
 
 export function getRandomImages(limit: number = 2): GalleryImage[] {
-  const allImages = galleryImagesByType.before_after;
+  const allImages = getAllImages(100); // Get more images to randomize from
   const shuffled = [...allImages].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, limit);
 }
 
 export function getImagesForAction(action: GalleryAction): GalleryImage[] {
-  return getImagesByType(
-    action.gallery_type,
-    action.procedure_type,
-    action.image_count || 2
-  );
+  if (action.procedure_type) {
+    return getImagesByProcedure(action.procedure_type, action.image_count || 2);
+  }
+  
+  if (action.gallery_type && action.gallery_type !== 'all') {
+    return getImagesByCategory(action.gallery_type, action.image_count || 2);
+  }
+  
+  return getAllImages(action.image_count || 2);
 }
 
 export function getImagesByCaseId(caseId: string): GalleryImage | undefined {
-  const allImages = [
-    ...galleryImagesByType.before_after,
-    ...galleryImagesByType.procedure,
-    ...galleryImagesByType.facility,
-    ...galleryImagesByType.credentials
-  ];
-  
-  return allImages.find(img => img.caseId && img.caseId === caseId);
+  // Since we're generating case IDs dynamically, we need to search through all images
+  const allImages = getAllImages(1000);
+  return allImages.find(img => img.caseId === caseId);
 }
 
-// Fallback placeholder images
+// Legacy support - flatten all images for backwards compatibility
+export const galleryImages: GalleryImage[] = getAllImages(50);
+
+// Fallback placeholder images for backwards compatibility
 export const placeholderImages: GalleryImage[] = [
   {
     image: 'https://picsum.photos/800/400?random=100',
-
     caption: 'Sample patient result',
     procedure: 'general',
     description: 'Before and after comparison',
     type: 'before_after'
   }
 ];
+
+// Get available categories
+export function getAvailableCategories(): string[] {
+  return Object.keys(newGalleryImagesByType);
+}
+
+// Get procedures for a specific category
+export function getProceduresForCategory(category: keyof typeof newGalleryImagesByType): string[] {
+  return Object.keys(newGalleryImagesByType[category] || {});
+}
+
+// Search images by term
+export function searchImages(searchTerm: string, limit: number = 5): GalleryImage[] {
+  const results: GalleryImage[] = [];
+  let count = 0;
+  const lowerSearchTerm = searchTerm.toLowerCase();
+  
+  for (const [category, procedures] of Object.entries(newGalleryImagesByType)) {
+    if (count >= limit) break;
+    
+    for (const [procedure, images] of Object.entries(procedures)) {
+      if (count >= limit) break;
+      
+      if (
+        category.toLowerCase().includes(lowerSearchTerm) ||
+        procedure.toLowerCase().includes(lowerSearchTerm)
+      ) {
+        for (let i = 0; i < images.length && count < limit; i++) {
+          results.push(convertToGalleryImage(category, procedure, images[i], i));
+          count++;
+        }
+      }
+    }
+  }
+  
+  return results;
+}
 
