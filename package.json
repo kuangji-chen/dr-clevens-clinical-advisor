@@ -4,14 +4,18 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/build-knowledge-base-simple.js",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "build:knowledge": "node scripts/build-knowledge-base-simple.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.56.0",
+    "fuse.js": "^7.1.0",
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
+    "pdf-parse": "^1.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "zustand": "^5.0.6"
@@ -19,6 +23,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
@@ -26,6 +31,7 @@
     "eslint-config-next": "15.3.5",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "ts-node": "^10.9.1",
     "typescript": "^5"
   }
 }

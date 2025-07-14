@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { knowledgeBase } from '@/utils/knowledgeBase';
+
+// Edge Runtime Configuration for faster cold starts
+export const runtime = 'nodejs'; // Keep nodejs for Anthropic SDK compatibility
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30; // 30 seconds timeout
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -56,9 +62,47 @@ export async function POST(request: NextRequest) {
       // Fallback for simple string state
       contextInfo = { currentState: conversationState };
     }
+
+    // Get the latest user message for knowledge base search
+    const latestUserMessage = messages.filter((m: { type: string; text: string }) => m.type === 'user').pop();
+    const conversationHistory = messages.slice(-6).map((m: { type: string; text: string }) => m.text);
+    
+    // Retrieve relevant knowledge from PDF
+    let knowledgeContext = '';
+    let pdfCitations: string[] = [];
+    
+    try {
+      if (latestUserMessage?.text) {
+        console.log('🔍 Searching knowledge base for:', latestUserMessage.text);
+        const knowledgeResult = await knowledgeBase.getRelevantContext(
+          latestUserMessage.text,
+          conversationHistory,
+          3
+        );
+        
+        if (knowledgeResult.context) {
+          knowledgeContext = `
+
+RELEVANT KNOWLEDGE FROM DR. CLEVENS CLINICAL KNOWLEDGE BASE:
+${knowledgeResult.context}
+
+`;
+          pdfCitations = knowledgeResult.citations;
+          console.log('✅ Found relevant knowledge:', knowledgeResult.citations.length, 'citations');
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Knowledge base search failed, using fallback:', error);
+      // Continue with fallback context - don't fail the request
+    }
+
+    // Build enhanced medical context with PDF knowledge
+    const enhancedMedicalContext = knowledgeContext ? 
+      `${MEDICAL_CONTEXT}${knowledgeContext}` : 
+      MEDICAL_CONTEXT;
     
     // Build conversation context
-    const systemPrompt = `${MEDICAL_CONTEXT}
+    const systemPrompt = `${enhancedMedicalContext}
 
 CURRENT CONVERSATION CONTEXT: ${JSON.stringify(contextInfo, null, 2)}
 
@@ -79,6 +123,9 @@ INSTRUCTIONS:
 - Guide the conversation naturally based on patient needs
 - Be encouraging but realistic about expectations
 - Always include appropriate disclaimers for medical advice
+- When available, prioritize information from the Clinical Knowledge Base above
+- Use specific details from the knowledge base to provide accurate, personalized information
+- Reference knowledge base sources when providing detailed medical information
 
 STATE TRANSITION RULES:
 - Analyze the user's intent and message content
@@ -188,7 +235,7 @@ Trust your semantic understanding - show galleries when they would naturally enh
           }
           
           // Send completion signal with citations, gallery actions, and state transition
-          const citations = extractCitations(fullResponse);
+          const citations = extractCitations(fullResponse, pdfCitations);
           const galleryAction = extractGalleryAction(fullResponse);
           const nextState = extractNextState(fullResponse);
           
@@ -241,7 +288,7 @@ Trust your semantic understanding - show galleries when they would naturally enh
 }
 
 // Extract citations from response text
-function extractCitations(text: string): string[] {
+function extractCitations(text: string, pdfCitations: string[] = []): string[] {
   const citations: string[] = [];
   const citationMatches = text.match(/\[(\d+)\]/g);
   
@@ -258,6 +305,15 @@ function extractCitations(text: string): string[] {
     citationMatches.forEach(match => {
       if (sourceMap[match] && !citations.includes(sourceMap[match])) {
         citations.push(sourceMap[match]);
+      }
+    });
+  }
+  
+  // Add PDF citations if available
+  if (pdfCitations.length > 0) {
+    pdfCitations.forEach(citation => {
+      if (!citations.includes(citation)) {
+        citations.push(citation);
       }
     });
   }
