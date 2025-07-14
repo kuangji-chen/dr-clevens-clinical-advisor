@@ -10,7 +10,7 @@ export class PDFProcessor {
   private pdfPath: string;
 
   constructor(pdfPath?: string) {
-    this.pdfPath = pdfPath || path.join(process.cwd(), 'clevens-clinic-knowledge.pdf');
+    this.pdfPath = pdfPath || path.join(process.cwd(), 'public', 'clevens-clinic-knowledge.pdf');
   }
 
   static getInstance(pdfPath?: string): PDFProcessor {

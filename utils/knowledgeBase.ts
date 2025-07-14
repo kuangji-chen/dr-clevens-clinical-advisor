@@ -1,5 +1,7 @@
 import { PDFProcessor } from './pdfProcessor';
 import { SemanticSearch } from './semanticSearch';
+import { EdgeSemanticSearch } from './edgeSemanticSearch';
+import { preprocessedKnowledgeLoader } from './preprocessedKnowledgeLoader';
 import { 
   KnowledgeChunk, 
   ProcessedKnowledgeBase, 
@@ -14,13 +16,16 @@ import {
 export class KnowledgeBaseService {
   private static instance: KnowledgeBaseService;
   private pdfProcessor: PDFProcessor;
-  private semanticSearch: SemanticSearch | null = null;
+  private semanticSearch: SemanticSearch | EdgeSemanticSearch | null = null;
   private processedKnowledge: ProcessedKnowledgeBase | null = null;
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
+  private useEdgeOptimized = false;
 
   constructor() {
     this.pdfProcessor = PDFProcessor.getInstance();
+    // Use edge-optimized search in production for better performance
+    this.useEdgeOptimized = process.env.NODE_ENV === 'production';
   }
 
   static getInstance(): KnowledgeBaseService {
@@ -50,22 +55,52 @@ export class KnowledgeBaseService {
     try {
       console.log('🔄 Initializing knowledge base...');
       
-      // Extract PDF content
+      // Try to load preprocessed chunks first
+      const chunks = await preprocessedKnowledgeLoader.loadKnowledgeBase();
+      
+      if (chunks.length > 0) {
+        console.log(`📋 Using preprocessed chunks: ${chunks.length} items`);
+        
+        // Initialize search service with optimal implementation
+        if (this.useEdgeOptimized) {
+          console.log('⚡ Using edge-optimized search for production');
+          this.semanticSearch = new EdgeSemanticSearch(chunks);
+        } else {
+          console.log('🔍 Using full semantic search for development');
+          this.semanticSearch = new SemanticSearch(chunks);
+        }
+        
+        // Process into organized structure
+        this.processedKnowledge = this.organizeKnowledge(chunks);
+        
+        this.isInitialized = true;
+        console.log('✅ Knowledge base initialized with preprocessed data');
+        return;
+      }
+      
+      // Fallback to PDF processing if no preprocessed data
+      console.log('⚠️ No preprocessed data found, falling back to PDF processing...');
+      
+      // Extract PDF content (original flow)
       const pdfContent = await this.pdfProcessor.extractPDFContent();
       console.log(`📄 Extracted ${pdfContent.text.length} characters from PDF`);
       
       // Chunk the content
-      const chunks = this.pdfProcessor.chunkContent(pdfContent);
-      console.log(`📋 Created ${chunks.length} knowledge chunks`);
+      const pdfChunks = this.pdfProcessor.chunkContent(pdfContent);
+      console.log(`📋 Created ${pdfChunks.length} knowledge chunks`);
       
       // Initialize search service
-      this.semanticSearch = new SemanticSearch(chunks);
+      if (this.useEdgeOptimized) {
+        this.semanticSearch = new EdgeSemanticSearch(pdfChunks);
+      } else {
+        this.semanticSearch = new SemanticSearch(pdfChunks);
+      }
       
       // Process into organized structure
-      this.processedKnowledge = this.organizeKnowledge(chunks);
+      this.processedKnowledge = this.organizeKnowledge(pdfChunks);
       
       this.isInitialized = true;
-      console.log('✅ Knowledge base initialized successfully');
+      console.log('✅ Knowledge base initialized with PDF processing fallback');
       
     } catch (error) {
       console.error('❌ Failed to initialize knowledge base:', error);

@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { knowledgeBase } from '@/utils/knowledgeBase';
 
+// Edge Runtime Configuration for faster cold starts
+export const runtime = 'nodejs'; // Keep nodejs for Anthropic SDK compatibility
+export const dynamic = 'force-dynamic';
+export const maxDuration = 30; // 30 seconds timeout
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
